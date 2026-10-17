@@ -163,3 +163,72 @@ Your recommended layout sounds good to me.
 > ### 10. Housekeeping
 
 Everything you propose sounds fine to me.
+
+## Claude's Response I
+
+**On your wording:** it didn't push me against my instincts. I'd recommend **both** whatever the package was called:
+- Without the TS plugin, script files get no type-aware checks, and those are where the analyzer adds most over the tag's own runtime errors. Examples: a `.prop` that isn't a property of that element, an `@event` name that doesn't exist, or a misspelled `ish` manager.
+- Without the extension-side engine, HTML and Markdown get nothing, which is lit-plugin's gap.
+
+One design point follows from doing both. **On desktop, the extension-side provider leaves `.js`/`.ts` files to the TS plugin**, so script files don't get each diagnostic twice. On the web, where the plugin can't run, the provider covers them too (syntax-level).
+
+### 8. Web support: one extension can do both, so no third extension
+
+An extension isn't all-or-nothing:
+- It can declare a **`main`** entry (Node, desktop) **and** a **`browser`** entry (a web worker, for vscode.dev and github.dev). Each environment loads the one it supports.
+- **`contributes.typescriptServerPlugins` is simply inert on the web**, so the TS plugin doesn't stop the rest from working there.
+
+So the same extension gives:
+
+| | Desktop | Web |
+|---|---|---|
+| Script files | TS plugin: diagnostics, hover, completions, type checks | provider: diagnostics and hover, syntax-level |
+| HTML, Markdown | provider: diagnostics and hover | provider: diagnostics and hover |
+| Workspace's own assign-gingerly (question 4) | ✅ | ❌, bundled copy only (no Node, no `node_modules`) |
+
+The cost is that the provider and the core must avoid Node APIs, which is easy for a parser. **A third extension isn't needed.**
+
+### 4. Keeping the analyzer's assign-gingerly current
+
+Your concern is the right one, so here's a plan where the habit you already have does the work:
+1. **The core lists `assign-gingerly` as an ordinary npm dependency**, not copied files. `npm run update` (`ncu -u && npm install`) bumps it like any other, and esbuild bundles whatever is installed when the extension is packaged.
+2. **In script files, the TS plugin uses the *project's own* assign-gingerly.** tsserver resolves `assign-gingerly/DX/tree.js` from the project being edited, so diagnostics match the version that project actually uses, with no bundled copy involved. It falls back to the bundled copy if the project's version predates `analyzeTree`.
+3. **On desktop, in trusted workspaces, the provider does the same** for HTML and Markdown: it uses `node_modules/assign-gingerly` from the workspace when it's there, and falls back to the bundled copy otherwise, or on the web.
+4. **The hover footer names the copy used**, e.g. *"assign-gingerly 0.0.99 (workspace)"*, so a stale version is visible at a glance.
+5. **`StepsToPublish.md` starts with `npm run update`**, and a test fails if the bundled version is older than the one in `../assign-gingerly`, so a stale bundle is caught before publishing.
+
+### 6. Tag names: imports first, a setting for Markdown
+
+- **Script files:** the plugin follows imports. Whatever name `tree` is imported under from `assign-gingerly/DX/tree.js` (`tree`, `t`, `DX.tree`) is analyzed.
+- **A `tree` that isn't imported:** TypeScript already reports *"Cannot find name 'tree'"* in checked files. For unchecked JS, the plugin adds a gentle *"tree isn't imported from assign-gingerly/DX/tree.js"* with a quick fix that adds the import.
+- **HTML and Markdown**, where snippets often have no imports: the provider matches by name, using `gingerlyTree.tags` (default `["tree", "🌲", "DX.tree"]`) plus any names that snippet imports.
+
+### 3. The static entry point
+
+Thanks. I'll add it to `../assign-gingerly/DX/tree.ts`, with tests and docs there:
+- **The function:** `analyzeTree(strings, holeKinds)`, returning the parse, the notation with placeholders, and the errors with positions.
+- **`tree()`** is rebuilt on the same parser, so behavior can't drift. Its existing tests must still pass unchanged.
+- **Offsets:** I'll also make the error offsets **raw**, i.e. source positions with escapes unresolved, which removes the caveat from the earlier notes.
+
+**Build-time / server-side only use of `tree()`** doesn't change anything here: the analyzer only reads source.
+
+### The plan, then
+
+1. **assign-gingerly:** `analyzeTree` + raw offsets, tests, docs, `tsc` clean.
+2. **This repo**, as a monorepo:
+   - **`packages/core`:** finding templates in JS/TS, HTML and Markdown; hover rendering; type-free checks. Pure, so it runs in Node and in browsers.
+   - **`packages/ts-plugin`:** diagnostics, hover, completions and type checks in script files.
+   - **`packages/vscode`:**
+     - the extension, with `main` + `browser` entries;
+     - the HTML/Markdown provider, plus script files on the web;
+     - the `gingerlyTree.tags` setting;
+     - `extensionDependencies` on gingerly-tree;
+     - `typescriptServerPlugins`.
+   - **`packages/cli`:** `npx gingerly-tree-analyzer check <globs>`, for CI.
+3. **Tests at each level**, plus a `StepsToPublish.md` for the Marketplace and Open VSX.
+
+I'd do it in that order. Step 1 is small and makes everything else possible, so I'd check back after the core and the plugin are working, before completions and the CLI. **Shall I proceed?**
+
+## Bruce's Response II
+
+Everything sounds great!  Please proceed.
