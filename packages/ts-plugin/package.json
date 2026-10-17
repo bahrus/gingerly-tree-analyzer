@@ -1,0 +1,12 @@
+{
+  "name": "gingerly-tree-ts-plugin",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "TypeScript language service plugin for assign-gingerly tree`…` templates. Bundled into the gingerly-tree-analyzer VS Code extension.",
+  "main": "dist/index.cjs",
+  "license": "MIT",
+  "dependencies": {
+    "gingerly-tree-analyzer-core": "0.0.1"
+  }
+}

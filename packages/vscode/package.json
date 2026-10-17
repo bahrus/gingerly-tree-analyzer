@@ -1,0 +1,78 @@
+{
+  "name": "gingerly-tree-analyzer",
+  "displayName": "Gingerly Tree Analyzer",
+  "description": "Diagnostics and hovers for assign-gingerly tree`…` tagged templates: the tag's errors as you type, the tree notation each template produces, and type checks in TypeScript/JavaScript.",
+  "version": "0.0.1",
+  "type": "module",
+  "publisher": "andersonbruceb",
+  "author": "anderson.bruce.b@gmail.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bahrus/gingerly-tree-analyzer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bahrus/gingerly-tree-analyzer/issues"
+  },
+  "homepage": "https://github.com/bahrus/gingerly-tree-analyzer#readme",
+  "keywords": [
+    "assign-gingerly",
+    "tree",
+    "tagged template",
+    "lit-html",
+    "lit-plugin",
+    "diagnostics",
+    "web components"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "main": "./dist/extension.cjs",
+  "browser": "./dist/web.cjs",
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "extensionDependencies": [
+    "andersonbruceb.gingerly-tree"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In untrusted workspaces, the bundled assign-gingerly is used, never the workspace's own copy."
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "typescriptServerPlugins": [
+      {
+        "name": "gingerly-tree-ts-plugin",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
+    ],
+    "configuration": {
+      "title": "Gingerly Tree",
+      "properties": {
+        "gingerlyTree.tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "tree",
+            "DX.tree"
+          ],
+          "markdownDescription": "Tag names analyzed as `` tree`…` `` without an import (mostly for Markdown and HTML snippets). In script files, any name imported from `assign-gingerly/DX/tree.js` is analyzed anyway."
+        }
+      }
+    }
+  }
+}

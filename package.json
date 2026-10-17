@@ -1,0 +1,30 @@
+{
+  "name": "gingerly-tree-analyzer-monorepo",
+  "private": true,
+  "description": "Diagnostics, hover and completions for assign-gingerly tree`…` tagged templates: core, TypeScript plugin, VS Code extension.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/ts-plugin",
+    "packages/vscode"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node scripts/build.mjs && node --test \"packages/*/test/*.test.ts\"",
+    "test:e2e": "node scripts/build.mjs && node packages/vscode/test/e2e/run.mjs",
+    "test:web": "node scripts/build.mjs && node packages/vscode/test/e2e/run-web.mjs",
+    "test:all": "npm run typecheck && npm test && node packages/vscode/test/e2e/run.mjs && node packages/vscode/test/e2e/run-web.mjs",
+    "package": "node scripts/package.mjs",
+    "update": "ncu -u && npm install"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@types/vscode": "~1.100.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/test-web": "^0.0.81",
+    "assign-gingerly": "file:../assign-gingerly",
+    "esbuild": "^0.28.2",
+    "typescript": "~6.0.3"
+  }
+}

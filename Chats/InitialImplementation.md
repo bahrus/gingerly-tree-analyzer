@@ -232,3 +232,102 @@ I'd do it in that order. Step 1 is small and makes everything else possible, so 
 ## Bruce's Response II
 
 Everything sounds great!  Please proceed.
+
+## Claude's Implementation Notes
+
+Done, up to the agreed checkpoint: **assign-gingerly's `analyzeTree`, the core, the TS plugin and the VS Code extension** (desktop and web). **Not yet:** completions and the CLI. Nothing is committed or published.
+
+**Results:**
+
+| | |
+|---|---|
+| `npm test` (unit) | **28 / 28**: core 17, plugin 10, tsserver 1 |
+| `npm run test:e2e` (your VS Code 1.142) | **6 / 6** |
+| `npm run test:web` (VS Code for the Web, headless Chromium) | **5 / 5** |
+| `npm run typecheck` | clean |
+| `npm run package` | `gingerly-tree-analyzer-0.0.1.vsix`, 2.2 MB |
+| assign-gingerly's full suite (in a scratch copy, see below) | **149 passed, 4 skipped**, in Chromium, Firefox and WebKit |
+
+### 1. assign-gingerly (`../assign-gingerly`)
+
+**`DX/tree.ts`:**
+- **`analyzeTree(strings, values)`** is the tag's own parser and rules. It **returns** `{ spec, elements, errors }` instead of throwing, and caches nothing.
+  - **`elements`:** the parsed tree, with each tag's, attribute's and directive's location. This is what the type checks use, and completions will.
+  - **`tree()` is now built on the same functions** (`createContext`, `parseRoot`, `toSpec`), so the two can't drift apart.
+- **`TreeUnknown`:** the stand-in for a `${…}` that can't be known statically. Tree treats it leniently:
+  - **in attribute position**, it may be `each(…)` or a pattern object;
+  - **as content**, it's a child where children are expected (siblings are elements, or the element has `each(…)`), and text otherwise;
+  - **as an `@event` value**, it's accepted.
+
+  It shows as `‹text›` in the notation. Without this leniency, `${item}` as a repeat item, or the demo's `${action}` between children, would have been false errors.
+- **Error offsets are now raw** (source) offsets, as offered earlier: `offset` counts characters of `strings.raw[part]`, so escapes before an error no longer shift it.
+  - **This changed three expectations in the existing Test 9.** Those templates contain `\n` escapes, which are 2 source characters each, so the offsets there grew by 1. The line/column values are unchanged.
+
+**Elsewhere in assign-gingerly:**
+- **Types** (`TreeAnalysis`, `TreeTemplateElement`, `TreeTemplateAttribute`, `TreeTemplateStrings`) are in `types/assign-gingerly/treeTypes.d.ts`. **`types` is a submodule**, so that change needs its own commit there.
+- **Tests:** `tests/dx-tree.html` has Tests 10–13: raw offsets, `analyzeTree` against the tag, `TreeUnknown` leniency, and element locations. It's 51 / 51 in all three browsers.
+- **Docs:** `docs/tree.md` covers the raw offsets and `analyzeTree` / `TreeUnknown`.
+
+**Per CLAUDE.md, I didn't generate the `.js`.** I verified everything in a scratch copy: `tsc` there, then the full Playwright suite. **Please run your build** to get `DX/tree.js` with `analyzeTree`. The analyzer doesn't wait for that (see 4).
+
+### 2. This repo
+
+It's the monorepo we agreed on. See [README.md](../README.md) for the layout, the scripts and debugging (F5 loads both extensions from source).
+- **`packages/core`** (pure; given a TypeScript module, so it runs in Node, tsserver and web workers):
+  - **Finding templates:** in JS/TS by syntax, plus in Markdown code blocks (any case, `~~~` and indented fences included) and HTML `<script>` tags, skipping `src`, JSON and import maps.
+  - **Tag names:** imports first (`tree`, `tree as t`, `import * as DX` → `DX.tree`); then the `tags` setting, unless the name is declared locally.
+  - **Stand-ins for each `${…}`:**
+    - literals;
+    - `paths()` chains → `'?.a?.b'` (`.Path` included);
+    - `each(…)` → the real `each`;
+    - object and array literals;
+    - nested `` tree`…` `` → its spec;
+    - consts followed within the file;
+    - anything else → `TreeUnknown`.
+  - **Positions:** errors map to exact source ranges, including CRLF files and escapes. The underline covers the tag, the attribute name, or the whole `${…}`.
+  - **Hovers:** the notation, printed the way the docs write it (`['ul', {}, [ … ]]`), or the error. On an attribute, what it maps to. The footer names the assign-gingerly copy.
+  - **`typeChecks`**, which needs a type checker:
+    - **`.prop`:** checked against `HTMLElementTagNameMap[tag]`, including custom elements declared there. A warning.
+    - **`@event`:** checked against `HTMLElementEventMap`. A *suggestion*, since delegated custom events are normal.
+    - **`ish`:** must be a class, a string, or `any`. A warning.
+  - **`paths` proxies** are also recognized by type (`PathProxy<…>`), not only by a `paths()` call in the same file.
+- **`packages/ts-plugin`** wraps the language service:
+  - semantic and suggestion diagnostics (source `gingerly-tree`, codes 9800–9804);
+  - hovers, merged with TypeScript's own (on the tag, both show);
+  - the missing-import quick fix (`getSupportedCodeFixes` includes it);
+  - the `tags` setting, through `configurePlugin`;
+  - **the project's own assign-gingerly** when it has `analyzeTree`, else the bundled copy (and it logs why).
+- **`packages/vscode`**, the extension:
+  - Markdown and HTML everywhere;
+  - script files only where the plugin can't run, i.e. the web or the `useTsgo` preview, so there are **no duplicate diagnostics**;
+  - the workspace's assign-gingerly in trusted workspaces;
+  - `extensionDependencies` on gingerly-tree;
+  - `typescriptServerPlugins`;
+  - `untrustedWorkspaces: limited`.
+
+### 3. Things I found that changed the plan
+
+- **TypeScript 7 has no JS compiler API.** npm's `typescript@latest` is now 7.0.2 (the native port), which exports only `unstable/*` modules.
+  - VS Code 1.142 still runs **TypeScript 6.0.3** (JS tsserver, so plugins load), so the analyzer pins `typescript@~6.0.3`.
+  - **With VS Code's opt-in `typescript.experimental.useTsgo`, TS plugins don't load at all.** The extension notices and analyzes script files itself (errors and hovers, no type checks).
+  - This is the likeliest thing to need revisiting as VS Code moves to TS 7.
+- **`` 🌲`…` `` isn't valid JavaScript** (an emoji isn't an identifier), so TypeScript never sees a tagged template there, and it isn't analyzed. gingerly-tree still highlights it.
+- **Shipping the plugin:**
+  - **Where tsserver looks:** in the extension's `node_modules`.
+  - **Why `vsce` can't package it directly:** in an npm workspace, `vsce` either drops `node_modules` or takes in the whole repo, `.git` included.
+  - **The fix:** `scripts/package.mjs` stages the extension in `.package/` first.
+  - **Tested:** `tsserver.test.ts` starts the real `tsserver.js` with `--globalPlugins … --pluginProbeLocations <extension>`, exactly as VS Code does.
+
+### 4. Keeping assign-gingerly current: simpler than planned
+
+Instead of a published-version dependency plus a staleness test, **assign-gingerly is linked from `../assign-gingerly`** (`file:`). esbuild bundles it **from its `.ts` sources**, so the bundled copy *is* the current source at every build. It can't go stale, and it doesn't depend on its `.js` being rebuilt.
+- **The cost:** this repo expects to sit next to assign-gingerly, as in `beGingerly/`.
+- **At runtime**, the plugin and the extension still prefer the **project's / workspace's own** copy when it has `analyzeTree`. Hovers say which copy is in use.
+
+### 5. Next, after you've tried it
+
+1. **Completions** (script files: tag names, attributes, `.prop` from the element's type, `@event`), using `elements` and the core.
+2. **The CLI** (`packages/cli`): the core plus type checks on a `ts.Program`.
+3. Publishing: gingerly-tree first, then this one ([StepsToPublish.md](../StepsToPublish.md)).
+
+**To try it:** press F5 in this folder. It opens `packages/vscode/test/e2e/fixtures`, which has a broken template in `.md`, `.html` and `.ts` files.

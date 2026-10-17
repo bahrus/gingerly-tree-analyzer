@@ -1,0 +1,11 @@
+{
+  "name": "gingerly-tree-analyzer-core",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Finds and analyzes assign-gingerly tree`…` templates in JS/TS, HTML and Markdown. Pure: runs in Node and in browsers.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT"
+}

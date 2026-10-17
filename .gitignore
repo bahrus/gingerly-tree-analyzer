@@ -147,3 +147,12 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Build output
+packages/*/dist/
+packages/vscode/node_modules/gingerly-tree-ts-plugin/
+*.vsix
+
+.package/
+.vscode-test/
+.vscode-test-web/
