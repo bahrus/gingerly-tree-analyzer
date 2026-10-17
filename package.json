@@ -26,5 +26,6 @@
     "assign-gingerly": "file:../assign-gingerly",
     "esbuild": "^0.28.2",
     "typescript": "~6.0.3"
-  }
+  },
+  "version": "0.0.1"
 }
