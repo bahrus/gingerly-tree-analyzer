@@ -127,7 +127,7 @@ Your breakdown for v1 feature support sounds great.
 
 > ### 3. A static entry point in assign-gingerly (needs your OK)
 
-I think this package should absolutely feel free to modify DX/tree.ts from assign-gingerly now and going forward to best support this extension.  The way I intend to use DX/tree.ts is strictly during build time / server side processing, not in the browser, so I'm not at all worried about file size.  Perhaps in the future we could add another slimmed down version of DX/tree.ts for browser specific client generation (as is done in the demo), but only if needs warrant which I don't anticipate for my personal use at this time.
+I think this package should absolutely feel free to modify DX/tree.ts from assign-gingerly now and going forward to best support this extension.   Note that assign-gingerly is a subfolder of the root folder in which this vs code session is open (i.e. ../assign-gingerly) The way I intend to use DX/tree.ts is strictly during build time / server side processing, not in the browser, so I'm not at all worried about file size.  Perhaps in the future we could add another slimmed down version of DX/tree.ts for browser specific client generation (as is done in the demo), but only if needs warrant which I don't anticipate for my personal use at this time.
 
 > ### 4. Which copy of assign-gingerly the analyzer uses
 
