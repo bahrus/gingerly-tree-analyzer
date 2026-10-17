@@ -1,6 +1,6 @@
 {
   "name": "gingerly-tree-analyzer-monorepo",
-  "private": true,
+  "private": false,
   "description": "Diagnostics, hover and completions for assign-gingerly tree`…` tagged templates: core, TypeScript plugin, VS Code extension.",
   "license": "MIT",
   "workspaces": [
