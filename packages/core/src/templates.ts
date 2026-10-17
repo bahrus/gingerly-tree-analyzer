@@ -11,6 +11,7 @@ export interface Imports {
     /** Local names bound to `tree`: `tree`, an alias, or `ns.tree` for `import * as ns` */
     tree: Set<string>;
     each: Set<string>;
+    choose: Set<string>;
     paths: Set<string>;
     /** Every other name a declaration in the file introduces (so a local `tree` isn't mistaken for ours) */
     declared: Set<string>;
@@ -19,7 +20,7 @@ export interface Imports {
 }
 
 export function collectImports(ts: Typescript, sf: TS.SourceFile): Imports {
-    const imports: Imports = { tree: new Set(), each: new Set(), paths: new Set(), declared: new Set(), importInsertAt: 0 };
+    const imports: Imports = { tree: new Set(), each: new Set(), choose: new Set(), paths: new Set(), declared: new Set(), importInsertAt: 0 };
     for (const statement of sf.statements) {
         if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
         imports.importInsertAt = statement.end;
@@ -30,7 +31,7 @@ export function collectImports(ts: Typescript, sf: TS.SourceFile): Imports {
         if (!bindings) continue;
         if (ts.isNamespaceImport(bindings)) {
             const ns = bindings.name.text;
-            if (isTree) { imports.tree.add(`${ns}.tree`); imports.each.add(`${ns}.each`); }
+            if (isTree) { imports.tree.add(`${ns}.tree`); imports.each.add(`${ns}.each`); imports.choose.add(`${ns}.choose`); }
             if (isPaths) imports.paths.add(`${ns}.paths`);
             continue;
         }
@@ -39,6 +40,7 @@ export function collectImports(ts: Typescript, sf: TS.SourceFile): Imports {
             const local = element.name.text;
             if (isTree && imported === 'tree') imports.tree.add(local);
             else if (isTree && imported === 'each') imports.each.add(local);
+            else if (isTree && imported === 'choose') imports.choose.add(local);
             else if (isPaths && imported === 'paths') imports.paths.add(local);
         }
     }

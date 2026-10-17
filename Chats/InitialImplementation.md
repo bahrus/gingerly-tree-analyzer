@@ -331,3 +331,83 @@ Instead of a published-version dependency plus a staleness test, **assign-ginger
 3. Publishing: gingerly-tree first, then this one ([StepsToPublish.md](../StepsToPublish.md)).
 
 **To try it:** press F5 in this folder. It opens `packages/vscode/test/e2e/fixtures`, which has a broken template in `.md`, `.html` and `.ts` files.
+
+## Bruce's Response III
+
+Can you please update [tree.md](../../assign-gingerly/docs/tree.md) with links and discussion about gingerly-tree and gingerly-tree-analyzer?
+
+## Claude's Response III
+
+Done. [`docs/tree.md`](../../assign-gingerly/docs/tree.md) has a new subsection, **Editor support (VS Code)**, at the end of *Authoring with `` tree`…` ``*. The section's opening paragraph points to it. It has:
+- **A comparison table** of the two extensions: what each does, how, where it works (JS/TS, HTML, Markdown and the Markdown Preview), and on the web.
+- **Gingerly Tree:** what it highlights, including the `?.` paths.
+- **Gingerly Tree Analyzer:**
+  - errors as you type, built on `analyzeTree`;
+  - hovers;
+  - the JS/TS type checks and the missing-import quick fix;
+  - how tag names are matched;
+  - which assign-gingerly copy it uses.
+- **A note** that GitHub's rendering can't be changed by either extension.
+
+The existing mention in the `analyzeTree` bullet now links to that subsection.
+
+**One link to add after publishing:** Gingerly Tree links to its Marketplace page, but the analyzer isn't on the Marketplace yet, so it links to its GitHub repo. After publishing, its header link can become `https://marketplace.visualstudio.com/items?itemName=andersonbruceb.gingerly-tree-analyzer`.
+
+## Bruce's Response IV
+
+Last night, with only the gingerly-tree extension installed when I opened [tree.md](../../assign-gingerly/docs/tree.md), I would see syntax highlighting both in Markup editing mode and in preview mode (vs code local as well as vs code web).  The extension didn't change from them.  The only difference, I think, was installing the analyzer extension.  Anyway, now, the formatting in preview mode is gone.
+
+Can you figure out why?
+
+## Claude's Response IV
+
+**The analyzer wasn't the cause. This machine was still running Gingerly Tree 0.0.1, and the preview support only shipped in 0.0.2.**
+
+From VS Code's logs and `~/.vscode/extensions`:
+
+| When (EDT) | What |
+|---|---|
+| Oct 16, 22:41 | Gingerly Tree **0.0.1** installed from the Marketplace: grammars only, no `preview/` folder |
+| Oct 16, 23:21 | **0.0.2** published, adding `markdown.previewScripts` / `previewStyles` |
+| Oct 17, 09:42 | Analyzer 0.0.1 installed. Gingerly Tree, the dependency, was already present, so it stayed at 0.0.1 |
+| Oct 17, 09:42–09:46 | VS Code logged *"Auto updating outdated extensions. andersonbruceb.gingerly-tree"* four times, but never installed it |
+
+- **Editor highlighting kept working** because 0.0.1 has the grammars.
+- **The preview fell back to plain highlight.js**, which shows a `` tree`…` `` template as one plain string.
+- **VS Code for the Web** downloads the latest version on demand, so it would have had 0.0.2 there.
+- **I can't explain last night's *local* preview from the logs.** 0.0.1 is the only Gingerly Tree ever installed on this machine. Possibly what you saw locally was the web preview, or an Extension Development Host.
+
+**Fixed:** I ran `code --install-extension andersonbruceb.gingerly-tree@0.0.2 --force`. **Reload the window** (Developer: Reload Window) and reopen the preview of `tree.md`.
+
+**A possible guard for the next analyzer build:** `extensionDependencies` can't require a minimum version. At activation, the analyzer could check `vscode.extensions.getExtension('andersonbruceb.gingerly-tree').packageJSON.version`, and offer to update when it's older than 0.0.2. Should I add that?
+
+## Bruce's Response VI
+
+Your explanation doesn't ring true.  I definitely upgraded my extension to version 0.0.2 last night, and when I look at what it is installed, before and after what you ran, it still shows 0.2
+
+I still don't see color syntax.
+
+Is it possible that gingerly-tree-analyzer bakes in a dependency on version 0.0.1?  Anyway, please dig further, I think you might be missing something.
+
+
+
+## Claude's Response VI
+
+You were right, and my earlier explanation was wrong. Sorry about that. **0.0.2 was installed and correct.** The problem is a **race in Gingerly Tree's preview script**. The analyzer doesn't cause it, but it changes startup timing enough to make it show up.
+
+**How I found it:** I launched isolated copies of VS Code 1.142, with and without the analyzer, opened the preview of `tree.md`, and read the preview's DOM through the DevTools protocol.
+- **The script always loads** (HTTP 200, with the right nonce).
+- **About one load in three, it found 0 code blocks.** It's loaded `async`, so it sometimes runs before the preview has filled in its content. That content then arrives **without** a `vscode.markdown.updateContent` event, so the script never runs again.
+- **It happened with and without the analyzer**, about once in three runs each. The analyzer's activation on `onLanguage:markdown` only shifts the timing, which is why installing it seemed to be the trigger. It's also why the preview can look fine after one reload and not the next.
+
+**The fix** is in `../gingerly-tree`, not yet committed or published:
+- **`preview/gingerly-tree-preview.js`:** the script also re-runs when code blocks are added. It uses a `MutationObserver`, batched to one run per tick, and skips blocks already done.
+- **`test/preview.mjs`:** a new test adds the content *after* the script has run, with no update event. It fails without the fix and passes with it. 100 / 100 pass.
+- **Real VS Code, with the analyzer installed:** 4 / 4 loads highlighted, against roughly 1 in 3 failing before.
+- **`CHANGELOG.md`:** an entry under *Unreleased*.
+
+**Next:** publish Gingerly Tree 0.0.3. Until then, the installed 0.0.2 will keep failing now and then.
+
+**"The request is blocked":** my guess is that the many throwaway VS Code profiles I launched, each querying the Marketplace, got this machine throttled by the Marketplace's front end for a while. My last runs turned Marketplace checks off.
+
+I've left my analyzer guard idea (Response IV) aside: the version wasn't the problem.

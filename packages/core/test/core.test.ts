@@ -72,6 +72,23 @@ test('unknown values are lenient: variables as children, items, directives and e
     assert.deepEqual(errorsOf(text), []);
 });
 
+test('choose(…): a switch as a child or an item, shown in the notation; errors inside its cases are reported', () => {
+    const text = `import { tree, each, choose } from 'assign-gingerly/DX/tree.js';
+const card = tree\`<article>
+    <h3>\${'?.title'}</h3>
+    \${choose('?.mode', { view: tree\`<span>Viewing</span>\`, quiet: null }, tree\`<p>Unknown</p>\`)}
+</article>\`;
+const list = tree\`<ol \${each('?.')}>\${choose('?.kind', { a: tree\`<li>A</li>\`, b: tree\`<li>B</i>\` })}</ol>\`;`;
+    const findings = errorsOf(text);
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0].start, at(text, '</i>'));
+    const { markdown } = hover(text, at(text, 'tree`') + 1)!;
+    const oneLine = markdown.replace(/\s+/g, ' ');
+    assert.match(oneLine, /\{ switch: '\?\.mode', cases: \{ view: \['span', \{ textContent: 'Viewing' \}\], quiet: null \}, default: \['p', \{ textContent: 'Unknown' \}\], \}/);
+    const item = hover(text, at(text, 'tree`<ol') + 1)!.markdown;
+    assert.match(item.replace(/\s+/g, ' '), /\{ each: \{ switch: '\?\.kind', cases: \{ a: \['li', \{ textContent: 'A' \}\], b: ‹tree`<li>B<\/i>`› \}/);
+});
+
 test('consts are followed: a tree`…` in a variable composes, and its errors are reported where it is', () => {
     const text = `${IMPORTS}const item = tree\`<li>\${'?.name'}</li>\`;
 const list = tree\`<ul \${each('?.items')}>\${item}</ul>\`;

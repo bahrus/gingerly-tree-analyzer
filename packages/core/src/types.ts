@@ -4,7 +4,9 @@ import type ts from 'typescript';
 export type Typescript = typeof ts;
 
 /** assign-gingerly's DX/tree.js: the parts the analyzer uses. */
-export type TreeModule = Pick<typeof import('assign-gingerly/DX/tree.js'), 'analyzeTree' | 'each' | 'TreeUnknown'>;
+export type TreeModule = Pick<typeof import('assign-gingerly/DX/tree.js'), 'analyzeTree' | 'each' | 'TreeUnknown'>
+    // Newer than analyzeTree: a project's own copy may predate it (then choose(…) stays unknown)
+    & Partial<Pick<typeof import('assign-gingerly/DX/tree.js'), 'choose'>>;
 export type TreeAnalysis = ReturnType<TreeModule['analyzeTree']>;
 export type TreeTemplateElement = TreeAnalysis['elements'][number];
 

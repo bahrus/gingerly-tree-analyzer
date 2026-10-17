@@ -1,5 +1,5 @@
 // Turning a `${…}` expression into the value analyzeTree should see: the value itself when it's
-// known statically (a '?.' string, a paths() chain, each(…), an object, a nested tree`…`), or a
+// known statically (a '?.' string, a paths() chain, each(…), choose(…), an object, a nested tree`…`), or a
 // TreeUnknown carrying the expression's text.
 
 import type * as TS from 'typescript';
@@ -52,6 +52,12 @@ export function createStandIns(ctx: StandInContext): (expression: TS.Expression)
                 const [of, options] = node.arguments;
                 const optionValues = options ? standIn(options, depth + 1) : {};
                 return tree.each(of ? standIn(of, depth + 1) : undefined, isPlainObject(optionValues) ? optionValues : {});
+            }
+            if (tree.choose && callee && (imports.choose.has(callee) || (callee === 'choose' && !imports.declared.has('choose')))) {
+                const [on, cases, fallback] = node.arguments;
+                const caseValues = cases ? standIn(cases, depth + 1) : {};
+                if (!on || !isPlainObject(caseValues)) return unknown(node);
+                return tree.choose(standIn(on, depth + 1), caseValues as any, fallback ? standIn(fallback, depth + 1) as any : undefined);
             }
             return unknown(node);
         }

@@ -32,6 +32,10 @@ assign-gingerly is linked from the sibling folder (`"assign-gingerly": "file:../
 
 Tests are TypeScript files run directly by Node (type stripping), so Node 22.18+ is needed.
 
+**`npm run update` skips two packages** (`.ncurc.json`):
+- **`typescript`** stays on 6.x. TypeScript 7 (the native port) has no JS compiler API, which the plugin, the core and the tests need, and VS Code still runs TS server plugins on 6.x. Revisit this when VS Code moves to TypeScript 7.
+- **`@types/vscode`** must not be newer than `engines.vscode` in `packages/vscode/package.json`, or `vsce` refuses to package. Bump both together, deliberately.
+
 ## Debugging
 
 Open this folder in VS Code and press F5 (*Run Extension*): it builds, then opens a window with this extension and gingerly-tree loaded from source.
