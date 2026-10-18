@@ -5,6 +5,7 @@
   "version": "0.0.2",
   "type": "module",
   "publisher": "andersonbruceb",
+  "icon": "icon.png",
   "author": "anderson.bruce.b@gmail.com",
   "license": "MIT",
   "repository": {

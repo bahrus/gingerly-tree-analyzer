@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Gingerly Tree Analyzer: Gingerly Tree's icon (a tree of elements growing from a ginger root,
+       with </> in its top node), examined through a magnifying glass. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16424a"/>
+      <stop offset="1" stop-color="#0b252b"/>
+    </linearGradient>
+    <linearGradient id="ginger" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="104">
+      <stop offset="0" stop-color="#f2a64f"/>
+      <stop offset="1" stop-color="#cf7a2c"/>
+    </linearGradient>
+    <linearGradient id="root" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4c27a"/>
+      <stop offset="1" stop-color="#d48a3c"/>
+    </linearGradient>
+    <radialGradient id="leaf" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#b6f08a"/>
+      <stop offset="1" stop-color="#4fb33f"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="26" fill="url(#bg)"/>
+  <g transform="translate(-8 -4) scale(0.98)">
+  
+    <!-- Branches: one trunk, three limbs, a twig on each side limb -->
+    <g fill="none" stroke="url(#ginger)" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M64 100 V70" stroke-width="10"/>
+      <path d="M64 76 C63 66 52 62 43 57" stroke-width="7"/>
+      <path d="M64 76 C65 66 76 62 85 57" stroke-width="7"/>
+      <path d="M64 74 V46" stroke-width="7"/>
+      <path d="M43 57 C36 54 31 50 28 45" stroke-width="5"/>
+      <path d="M85 57 C92 54 97 50 100 45" stroke-width="5"/>
+    </g>
+  
+    <!-- The ginger root (a rhizome) the tree grows from: knobby, with ring marks -->
+    <path fill="url(#root)" d="M30 104 C30 97 37 95 42 98 C44 93 51 92 54 97 C58 95 70 95 74 97 C77 92 85 93 86 98
+             C91 95 99 97 98 104 C97 111 88 112 83 109 C76 113 52 113 45 109 C39 112 30 110 30 104 Z"/>
+    <g fill="none" stroke="#a85f22" stroke-width="1.6" stroke-linecap="round" opacity="0.75">
+      <path d="M44 100 q2 5 0 10"/>
+      <path d="M84 100 q-2 5 0 10"/>
+      <path d="M55 99 q1.5 5 0 11"/>
+      <path d="M73 99 q-1.5 5 0 11"/>
+    </g>
+  
+    <!-- Leaf nodes -->
+    <g fill="url(#leaf)">
+      <circle cx="28" cy="41" r="10"/>
+      <circle cx="100" cy="41" r="10"/>
+      <circle cx="44" cy="55" r="8"/>
+      <circle cx="84" cy="55" r="8"/>
+      <circle cx="64" cy="33" r="17"/>
+    </g>
+  
+    <!-- </> in the top node -->
+    <g fill="none" stroke="#0b252b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M57 27 L51 33 L57 39"/>
+      <path d="M71 27 L77 33 L71 39"/>
+      <path d="M66.5 25 L61.5 41"/>
+    </g>
+  </g>
+
+  <!-- The magnifying glass -->
+  <g>
+    <path d="M100 100 L115 115" stroke="#0b252b" stroke-width="13" stroke-linecap="round"/>
+    <path d="M100 100 L115 115" stroke="#e9eef0" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="88" cy="88" r="19" fill="#0b252b" opacity="0.55"/>
+    <circle cx="88" cy="88" r="19" fill="none" stroke="#0b252b" stroke-width="9"/>
+    <circle cx="88" cy="88" r="19" fill="none" stroke="#e9eef0" stroke-width="5"/>
+    <path d="M79 80 a12 12 0 0 1 10 -6" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M80 89 l5 5 l10 -11" fill="none" stroke="#8fe36a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
