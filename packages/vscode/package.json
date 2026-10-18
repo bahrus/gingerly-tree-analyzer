@@ -2,7 +2,7 @@
   "name": "gingerly-tree-analyzer",
   "displayName": "Gingerly Tree Analyzer",
   "description": "Diagnostics and hovers for assign-gingerly tree`…` tagged templates: the tag's errors as you type, the tree notation each template produces, and type checks in TypeScript/JavaScript.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "publisher": "andersonbruceb",
   "icon": "icon.png",
