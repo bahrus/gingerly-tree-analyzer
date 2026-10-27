@@ -129,6 +129,13 @@ test('hovering an attribute explains it; inside ${…} there is no tree hover', 
     assert.equal(hover(text, at(text, "'?.v'") + 1), undefined);
 });
 
+test('itemscope: the hover explains props, and the notation shows { prop, val } segments', () => {
+    const text = `${IMPORTS}const a = tree\`<p itemscope>Launched \${p.date} by \${p.rocket}</p>\`;`;
+    assert.match(hover(text, at(text, 'itemscope'))!.markdown, /\*\*`itemscope`\*\*: the `<p>` has \*\*microdata\*\*/);
+    const notation = hover(text, at(text, 'tree`') + 1)!.markdown.replace(/\s+/g, ' ');
+    assert.match(notation, /microJoin: \[ ?'Launched ', \{ prop: 'date', val: '\?\.date' \}, ' by ', \{ prop: 'rocket', val: '\?\.rocket' \},? ?\]/);
+});
+
 test('tag names: imports (aliases, namespaces) first; a local tree is not ours', () => {
     const aliased = `import { tree as t } from 'assign-gingerly/DX/tree.js';\nconst a = t\`<b></i>\`;`;
     assert.equal(errorsOf(aliased).length, 1);

@@ -180,6 +180,9 @@ function attributeDoc(name: string, tag: string): string {
     if (name === 'ish') {
         return `**\`ish\`**: attaches an **itemscope manager** to the \`<${tag}>\`: a class, or a registered name.\n\nThe header becomes \`{ tag: '${tag}', ish }\`, and the element's subtree binds against the manager instance.`;
     }
+    if (name === 'itemscope') {
+        return `**\`itemscope\`**: the \`<${tag}>\` has **microdata**. Each path value in its text becomes a \`{ prop, val }\` microJoin segment, rendered with an \`itemprop\` named after the path's last segment (\`\${p.date}\` → \`itemprop="date"\`).\n\nIn the pattern: \`'itemscope :=': true\`. Write \`\${{ prop, val, text }}\` for another name or formatted text.`;
+    }
     return `**\`${name}\`**: an **attribute** of the \`<${tag}>\`.\n\nIn the pattern: \`'${name} :=': value\`. A literal value is baked into the template under \`compile\`.`;
 }
 
