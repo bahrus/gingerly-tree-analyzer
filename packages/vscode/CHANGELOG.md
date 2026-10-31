@@ -16,3 +16,16 @@
   - `ish=${…}` checked;
   - a missing `tree` import, with a quick fix.
 - VS Code for the Web: errors and hovers everywhere, including script files.
+
+## 0.0.2
+
+- Keeping in sync with assign-gingerly changes
+
+## 0.0.3
+
+- Keeping in sync with assign-gingerly changes
+
+## 0.0.4
+
+- Keeping in sync with assign-gingerly changes
+
